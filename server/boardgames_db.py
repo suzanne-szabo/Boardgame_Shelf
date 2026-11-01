@@ -68,7 +68,14 @@ class BoardGamesDB:
     def deleteBoardGame(self,game_id):
         self.cursor.execute("DELETE FROM boardgames WHERE id = ?",(game_id,))
         self.connection.commit()
-    
+
+    def nameExists(self, name, exclude_id=None):
+        name = name.strip()
+        if exclude_id is None:
+            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?)", (name,))
+        else:
+            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND id != ?", (name, exclude_id))
+        return self.cursor.fetchone() is not None
 
 db = BoardGamesDB()
 # new_id = db.createBoardGame({
