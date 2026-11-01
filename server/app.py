@@ -49,15 +49,16 @@ def create_boardgame():
     if data is None or not data.get("name"):
         return jsonify({"error": "Name is required"}), 400
 
-    game = game_attributes(data)
     db = BoardGamesDB()
-    gameID = db.createBoardGame(game)
     force = request.args.get("force") == "true"
     if not force and db.nameExists(data["name"]):
         return jsonify({
             "error": f"A game named {data['name']} is already on your shelf",
             "duplicate": True
         }), 409
+
+    game = game_attributes(data)
+    gameID = db.createBoardGame(game)
     return jsonify(db.getBoardGame(gameID)), 201
 
 @app.route("/boardgames/<int:game_id>", methods=["PUT"])

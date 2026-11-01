@@ -1,0 +1,644 @@
+/* ===== Color palette and shared values ===== */
+:root {
+    --wall: #2b1420;
+    --wall-deep: #1d0d16;
+    --wood: #9c5530;
+    --wood-dark: #6b3519;
+    --cream: #fbf3e4;
+    --cream-dark: #efe1c8;
+    --ink: #2a1a14;
+    --ink-soft: #6f5a4c;
+    --magenta: #e0418f;
+    --orange: #ff7a3d;
+    --purple: #7b4bd1;
+    --teal: #1f9e8f;
+    --danger: #c0392b;
+    --radius: 12px;
+    --shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    --font-display: "Righteous", "Trebuchet MS", sans-serif;
+    --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ===== Base ===== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--wall-deep);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+}
+
+/* ===== Utility classes ===== */
+.hidden {
+    display: none !important;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ===== Hero: shelf image with title, button and controls ===== */
+.hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1672 / 941;
+    background: url("images/gameshelf_desktop.png") center top / cover no-repeat;
+}
+
+/* Fades the bottom of the image into the page color */
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 12%;
+    background: linear-gradient(to bottom, transparent, var(--wall-deep));
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 17.2vw 16px 0;
+    text-align: center;
+}
+
+.site-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.4rem, 6vw, 6.5rem);
+    line-height: 1;
+    color: var(--cream);
+    letter-spacing: 0.02em;
+    text-shadow:
+        0 0 12px rgba(255, 122, 61, 0.55),
+        0 0 28px rgba(224, 65, 143, 0.45),
+        0 3px 0 var(--wood-dark);
+}
+
+#add-game-btn {
+    margin-top: 7.9vw;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    width: min(620px, 100%);
+    margin-top: 0.9vw;
+}
+
+/* ===== Search and sort controls ===== */
+#search-input,
+#sort-select {
+    height: 44px;
+    border: 1px solid rgba(251, 243, 228, 0.35);
+    border-radius: 999px;
+    background-color: rgba(29, 13, 22, 0.72);
+    color: var(--cream);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0 18px 0 42px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23efe1c8' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 16px center;
+}
+
+#search-input::placeholder {
+    color: rgba(251, 243, 228, 0.6);
+}
+
+#sort-select {
+    flex: 0 0 auto;
+    padding: 0 42px 0 18px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23efe1c8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+}
+
+#sort-select option {
+    background: var(--wall);
+    color: var(--cream);
+}
+
+#search-input:focus,
+#sort-select:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.35);
+}
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 24px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 3px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--orange), var(--magenta));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(224, 65, 143, 0.45);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(224, 65, 143, 0.6);
+}
+
+.btn-secondary {
+    background: transparent;
+    border-color: var(--wood);
+    color: var(--wood-dark);
+}
+
+.btn-secondary:hover {
+    background: var(--wood);
+    color: var(--cream);
+}
+
+.btn-danger {
+    background: transparent;
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* Pop-up buttons and the Add Game button: no movement on hover, only a color change */
+.dialog .btn,
+.dialog .btn:hover,
+.dialog .btn:active,
+#add-game-btn,
+#add-game-btn:hover,
+#add-game-btn:active {
+    transform: none;
+}
+
+.dialog .btn-primary,
+.dialog .btn-primary:hover {
+    box-shadow: none;
+}
+
+#add-game-btn:hover {
+    box-shadow: 0 4px 14px rgba(224, 65, 143, 0.45);
+}
+
+.dialog .btn-primary:hover,
+#add-game-btn:hover {
+    background: linear-gradient(135deg, #e0571f, #b8266c);
+}
+
+/* ===== Shelf panel: overlaps the last shelf and grows downward ===== */
+.shelf {
+    position: relative;
+    z-index: 2;
+    width: min(1180px, calc(100% - 32px));
+    margin: -12.6vw auto 48px;
+    padding: 24px;
+    border: 1px solid rgba(251, 243, 228, 0.18);
+    border-radius: 18px;
+    background: rgba(29, 13, 22, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+}
+
+.empty-message {
+    margin: 8px 0;
+    color: var(--cream-dark);
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+/* ===== Mini-cards ===== */
+.mini-card {
+    --accent: var(--wood);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 118px;
+    padding: 18px 14px 14px;
+    overflow: hidden;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--font-body);
+    text-align: left;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+
+/* Colored stripe across the top, like the lid of a game box */
+.mini-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: var(--accent);
+}
+
+.mini-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+}
+
+.mini-card:focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 3px;
+}
+
+.mini-card-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mini-card-type {
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mini-card .badge {
+    margin-top: auto;
+}
+
+/* Accent color per game type */
+.mini-card[data-type="strategy"]      { --accent: #b5532a; }
+.mini-card[data-type="party"]         { --accent: var(--magenta); }
+.mini-card[data-type="cooperative"]   { --accent: var(--teal); }
+.mini-card[data-type="family"]        { --accent: #d9862b; }
+.mini-card[data-type="deck-building"] { --accent: var(--purple); }
+.mini-card[data-type="card"]          { --accent: #c23a4b; }
+.mini-card[data-type="abstract"]      { --accent: #3d6fb6; }
+.mini-card[data-type="trivia"]        { --accent: #6b8e23; }
+.mini-card[data-type="other"]         { --accent: var(--ink-soft); }
+
+/* ===== Badges and tags ===== */
+.badge,
+.tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.badge-owned {
+    background: rgba(31, 158, 143, 0.15);
+    color: #137566;
+}
+
+.badge-wishlist {
+    background: rgba(224, 65, 143, 0.15);
+    color: #b02a6d;
+}
+
+.tag {
+    background: var(--cream-dark);
+    color: var(--wood-dark);
+}
+
+/* ===== Dialogs (pop-ups) ===== */
+.dialog {
+    width: min(560px, calc(100% - 32px));
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    border: none;
+    border-radius: 18px;
+    background: var(--cream);
+    color: var(--ink);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    overflow: auto;
+}
+
+.dialog::backdrop {
+    background: rgba(20, 8, 15, 0.7);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.dialog[open] {
+    animation: pop-in 0.2s ease-out;
+}
+
+@keyframes pop-in {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+#game-form {
+    padding: 28px;
+    border-top: 8px solid var(--wood);
+}
+
+#game-form h2,
+.detail-name {
+    margin: 0 0 18px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.8rem;
+    line-height: 1.15;
+    color: var(--wood-dark);
+}
+
+/* ===== Form fields ===== */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    letter-spacing: 0.03em;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--cream-dark);
+    border-radius: 10px;
+    background-color: #fffdf8;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b3519' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.25);
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* ===== Detail (full card) pop-up ===== */
+#detail-dialog {
+    border-top: 8px solid var(--wood);
+}
+
+#detail-content {
+    padding: 28px 28px 0;
+}
+
+#detail-dialog .form-actions {
+    padding: 20px 28px 28px;
+    margin-top: 0;
+}
+
+#delete-btn {
+    margin-right: auto;
+}
+
+.detail-name {
+    margin-bottom: 10px;
+}
+
+.detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.detail-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px 20px;
+    margin: 0;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    background: #fffdf8;
+    border: 1px solid var(--cream-dark);
+}
+
+.detail-list dt {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    letter-spacing: 0.03em;
+}
+
+.detail-list dd {
+    margin: 0;
+    font-weight: 700;
+}
+
+.detail-stars {
+    color: var(--orange);
+    letter-spacing: 0.08em;
+}
+
+.detail-notes {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--orange);
+    background: rgba(255, 122, 61, 0.08);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    white-space: pre-line;
+}
+
+/* ===== Tablets and small laptops: smaller controls so they fit on the shelf ===== */
+@media (min-width: 701px) and (max-width: 1100px) {
+    #add-game-btn {
+        padding: 8px 18px;
+        font-size: 0.92rem;
+    }
+
+    #search-input,
+    #sort-select {
+        height: 36px;
+        font-size: 0.88rem;
+    }
+}
+
+/* ===== Phones ===== */
+@media (max-width: 700px) {
+    .hero {
+        aspect-ratio: 941 / 1672;
+        background-image: url("images/gameshelf_mobile.png");
+    }
+
+    .hero-content {
+        padding-top: 63vw;
+    }
+
+    .site-title {
+        font-size: 9.5vw;
+    }
+
+    #add-game-btn {
+        margin-top: 15vw;
+        padding: 8px 18px;
+        font-size: 0.92rem;
+    }
+
+    .controls {
+        margin-top: 2vw;
+        gap: 8px;
+    }
+
+    #search-input,
+    #sort-select {
+        height: 38px;
+        font-size: 0.88rem;
+    }
+
+    #search-input {
+        padding-left: 38px;
+        background-position: 13px center;
+    }
+
+    #sort-select {
+        max-width: 42%;
+        padding-left: 12px;
+        padding-right: 34px;
+        background-position: right 12px center;
+    }
+
+    .shelf {
+        margin-top: -37vw;
+        padding: 14px;
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .mini-card {
+        min-height: 104px;
+        padding: 16px 12px 12px;
+    }
+
+    .mini-card-name {
+        font-size: 1rem;
+    }
+
+    #game-form,
+    #detail-content {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    #detail-dialog .form-actions {
+        padding: 18px 20px 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}

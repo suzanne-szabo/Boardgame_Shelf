@@ -1,7 +1,9 @@
 import sqlite3
 import os
+import json
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "boardgames.db")
+SEED_PATH = os.path.join(os.path.dirname(__file__), "seed_games.json")
 
 def dict_factory(cursor, row):
     fields = []
@@ -19,8 +21,12 @@ class BoardGamesDB:
         self.cursor = self.connection.cursor()
         self.createTable()
 
-
     def createTable(self):
+        self.cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'boardgames'"
+        )
+        is_new = self.cursor.fetchone() is None
+
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS boardgames (
                 id INTEGER PRIMARY KEY,
@@ -38,6 +44,17 @@ class BoardGamesDB:
             )
         """)
         self.connection.commit()
+
+        if is_new:
+            self.seedGames()
+
+    def seedGames(self):
+        if not os.path.exists(SEED_PATH):
+            return
+        with open(SEED_PATH, encoding="utf-8") as file:
+            games = json.load(file)
+        for game in games:
+            self.createBoardGame(game)
 
     def getBoardGames(self):
         self.cursor.execute("SELECT * FROM boardgames")
@@ -58,7 +75,7 @@ class BoardGamesDB:
     def updateBoardGame(self,game_id,game):
         game["id"] = game_id
         self.cursor.execute(""" UPDATE boardgames SET 
-                                name = :name, name = :name, game_type = :game_type, min_players = :min_players,
+                                name = :name, game_type = :game_type, min_players = :min_players,
                                 max_players = :max_players,play_time = :play_time,min_age = :min_age,
                                 complexity = :complexity,rating = :rating,price = :price,
                                 status = :status,notes = :notes
@@ -76,40 +93,3 @@ class BoardGamesDB:
         else:
             self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND id != ?", (name, exclude_id))
         return self.cursor.fetchone() is not None
-
-db = BoardGamesDB()
-# new_id = db.createBoardGame({
-#     "name": "Catan",
-#     "game_type": "Strategy",
-#     "min_players": 3,
-#     "max_players": 4,
-#     "play_time": 90,
-#     "min_age": 10,
-#     "complexity": 2,
-#     "rating": 4,
-#     "price": 44.99,
-#     "status": "Owned",
-#     "notes": "A classic"
-# })
-# print("New ID:", new_id)
-# print(db.getBoardGame(new_id))
-# print(db.getBoardGames())
-
-# db.updateBoardGame(1, {
-#     "name": "Catan",
-#     "game_type": "Strategy",
-#     "min_players": 3,
-#     "max_players": 4,
-#     "play_time": 90,
-#     "min_age": 10,
-#     "complexity": 2,
-#     "rating": 5,
-#     "price": 39.99,
-#     "status": "Owned",
-#     "notes": "Updated!"
-# })
-# print(db.getBoardGame(1))
-
-# db.deleteBoardGame(1)
-# print(db.getBoardGame(1))
-# print(db.getBoardGames())
