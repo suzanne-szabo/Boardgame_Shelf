@@ -48,6 +48,18 @@ class BoardGamesDB:
         if is_new:
             self.seedGames()
 
+    def createUsersTable(self):
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+                password_hash TEXT NOT NULL
+            )
+        """)
+        self.connection.commit()
+
     def seedGames(self):
         if not os.path.exists(SEED_PATH):
             return
@@ -93,3 +105,13 @@ class BoardGamesDB:
         else:
             self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND id != ?", (name, exclude_id))
         return self.cursor.fetchone() is not None
+
+    def findUserByEmail(self,email):
+        self.cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        return self.cursor.fetchone()
+
+    def createUser(self, first_name, last_name, email, password_hash):
+        self.cursor.execute(""" INSERT INTO users (first_name, last_name, email, password_hash)
+                                VALUES(?, ?, ?, ?)""", (first_name, last_name, email, password_hash))
+        self.connection.commit()
+        return self.cursor.lastrowid
