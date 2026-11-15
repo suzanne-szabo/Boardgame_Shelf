@@ -20,6 +20,7 @@ class BoardGamesDB:
         self.connection.row_factory = dict_factory
         self.cursor = self.connection.cursor()
         self.createTable()
+        self.createUsersTable()
 
     def createTable(self):
         self.cursor.execute(
