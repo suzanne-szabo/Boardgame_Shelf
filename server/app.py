@@ -1,4 +1,6 @@
 import sqlite3
+import secrets
+from functools import wraps
 
 from flask import Flask, jsonify, request
 from boardgames_db import BoardGamesDB
@@ -6,6 +8,27 @@ from passlib.hash import bcrypt
 
 app = Flask(__name__)
 app.json.sort_keys = False
+sessions = {}
+
+def get_authenticated_user():
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return None
+    return sessions.get(session_id)
+
+def login_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        user_id = get_authenticated_user()
+
+        if user_id is None:
+            return jsonify({
+                "error": "Unauthorized, please log in"
+            }), 401
+
+        return func(*args, **kwargs)
+
+    return wrapper
 
 Fields = ["name", "game_type", "min_players", "max_players", "play_time", "min_age", "complexity", "rating", "price", "status", "notes"]
 
@@ -33,12 +56,14 @@ def invalid_method(error):
     return jsonify({"error": "The method is not allowed for this URL"}), 405
 
 @app.route("/boardgames", methods=["GET"])
+@login_required
 def list_boardgames():
     db = BoardGamesDB()
     games = db.getBoardGames()
     return jsonify(games), 200
 
 @app.route("/boardgames/<int:game_id>", methods=["GET"])
+@login_required
 def get_boardgame(game_id):
     db = BoardGamesDB()
     game = db.getBoardGame(game_id)
@@ -47,6 +72,7 @@ def get_boardgame(game_id):
     return jsonify(game), 200
 
 @app.route("/boardgames", methods=["POST"])
+@login_required
 def create_boardgame():
     data = request.get_json()
     if data is None or not data.get("name"):
@@ -65,6 +91,7 @@ def create_boardgame():
     return jsonify(db.getBoardGame(gameID)), 201
 
 @app.route("/boardgames/<int:game_id>", methods=["PUT"])
+@login_required
 def update_boardgame(game_id):
     db = BoardGamesDB()
     game = db.getBoardGame(game_id)
@@ -87,6 +114,7 @@ def update_boardgame(game_id):
     return jsonify(db.getBoardGame(game_id)), 200
 
 @app.route("/boardgames/<int:game_id>", methods=["DELETE"])
+@login_required
 def delete_boardgame(game_id):
     db = BoardGamesDB()
     game = db.getBoardGame(game_id)
@@ -139,9 +167,6 @@ def create_user():
                 email=email,
                 password_hash=password_hash
             )
-        # except sqlite3.IntegrityError:
-        #     db.connection.rollback()
-        #     return jsonify({"error": "New user creation conflict"}), 409
 
         except sqlite3.Error as e:
             db.connection.rollback()
@@ -153,6 +178,70 @@ def create_user():
     except sqlite3.Error:
         db.connection.rollback()
         return jsonify({"error": "Database operation failed"}), 500
+
+
+@app.route("/sessions", methods=["POST"])
+def login():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in [email, password]
+    ):
+        return jsonify({
+            "error": "Email and password are required"
+        }), 400
+
+    email = email.strip()
+
+    db = BoardGamesDB()
+
+    try:
+        user = db.findUserByEmail(email)
+
+        if user is None:
+            return jsonify({
+                "error": "Invalid email or password"
+            }), 401
+
+        if not bcrypt.verify(password, user["password_hash"]):
+            return jsonify({
+                "error": "Invalid email or password"
+            }), 401
+
+        session_id = secrets.token_urlsafe(32)
+        sessions[session_id] = user["id"]
+
+        response = jsonify({
+            "message": "Login successful",
+            "user": {
+                "id": user["id"],
+                "first_name": user["first_name"],
+                "last_name": user["last_name"],
+                "email": user["email"]
+            }
+        })
+
+        response.set_cookie(
+            "session_id",
+            session_id,
+            httponly=True,
+            samesite="Lax",
+            secure=False
+        )
+
+        return response, 200
+
+    finally:
+        db.connection.close()
+
+
 
 
 
