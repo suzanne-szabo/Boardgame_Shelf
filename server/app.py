@@ -241,7 +241,16 @@ def login():
     finally:
         db.connection.close()
 
+@app.route("/sessions", methods=["DELETE"])
+def logout():
+    session_id = request.cookies.get("session_id")
 
+    if session_id:
+        sessions.pop(session_id, None)
+
+    response = jsonify({"message": "Logout successful"})
+    response.delete_cookie("session_id")
+    return response, 200
 
 
 
