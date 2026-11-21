@@ -81,13 +81,18 @@ function applyFilters() {
 async function loadGames() {
     try {
         const response = await fetch(API_URL, { credentials: "include" });
+        if (response.status === 401) { window.location.href = "index.html"; return;} 
+        if (!response.ok) throw new Error("Server returned ${response.status}");
+        
+
         allGames = await response.json();
         emptyMessage.textContent = "No games found.";
         applyFilters();
     } catch (error) {
+        console.error("Error loading games:", error);
         allGames = [];
         gameGrid.innerHTML = "";
-        emptyMessage.textContent = "Couldn't reach the server. Is Flask running on port 8080?";
+        emptyMessage.textContent = "Unable to load games. Please try again";
         emptyMessage.classList.remove("hidden");
     }
 }
@@ -259,6 +264,24 @@ editBtn.addEventListener("click", () => {
 addGameBtn.addEventListener("click", () => openForm());
 cancelBtn.addEventListener("click", () => formDialog.close());
 closeDetailBtn.addEventListener("click", () => detailDialog.close());
+
+
+document.getElementById("logout-btn").addEventListener("click", async () => {
+    try {
+        const response = await fetch("http://localhost:8080/sessions",
+            {method: "DELETE", credentials: "include"});
+
+        if (!response.ok) {
+            throw new Error(`Logout failed: ${response.status}`);
+        }
+
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Unable to log out. Please try again.");
+    }
+});
+
 
 for (const dialog of [formDialog, detailDialog]) {
     dialog.addEventListener("click", (event) => {

@@ -267,6 +267,13 @@ def logout():
     return response, 200
 
 
+@app.route("/sessions", methods=["GET"])
+@login_required
+def check_session():
+    return jsonify({"authenticated": True}), 200
+
+
+
 
 if __name__ == "__main__":
     app.run(port = 8080, debug = True)

@@ -8,6 +8,43 @@
 
 </head>
 <body>
+    <main id="auth-container">
+        <h1>Game Shelf</h1>
+
+        <section id="login-section">
+            <h2>Log In</h2>
+            <form id="login-form">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required>
+
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+
+                <button type="submit">Log In</button>
+            </form>
+            <p id="login-message" role="status"></p>
+        </section>
+
+        <section id="register-section">
+            <h2>Create an Account</h2>
+            <form id="register-form">
+                <label for="register-first-name">First Name</label>
+                <input type="text" id="register-first-name" required>
+
+                <label for="register-last-name">Last Name</label>
+                <input type="text" id="register-last-name" required>
+
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" required>
+
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" required>
+
+                <button type="submit">Register</button>
+            </form>
+            <p id="register-message" role="status"></p>
+        </section>
+    </main>
     
 
     <script src = "auth.js"></script>
