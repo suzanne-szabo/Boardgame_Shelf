@@ -67,15 +67,17 @@ def invalid_method(error):
 @app.route("/boardgames", methods=["GET"])
 @login_required
 def list_boardgames():
+    user_id = get_authenticated_user()
     db = BoardGamesDB()
-    games = db.getBoardGames()
+    games = db.getBoardGames(user_id)
     return jsonify(games), 200
 
 @app.route("/boardgames/<int:game_id>", methods=["GET"])
 @login_required
 def get_boardgame(game_id):
+    user_id = get_authenticated_user()
     db = BoardGamesDB()
-    game = db.getBoardGame(game_id)
+    game = db.getBoardGame(game_id, user_id)
     if game is None:
         return jsonify({"error": "Board game is not on your shelf"}), 404
     return jsonify(game), 200
@@ -84,26 +86,28 @@ def get_boardgame(game_id):
 @login_required
 def create_boardgame():
     data = request.get_json()
+    user_id = get_authenticated_user()
     if data is None or not data.get("name"):
         return jsonify({"error": "Name is required"}), 400
 
     db = BoardGamesDB()
     force = request.args.get("force") == "true"
-    if not force and db.nameExists(data["name"]):
+    if not force and db.nameExists(data["name"], user_id):
         return jsonify({
             "error": f"A game named {data['name']} is already on your shelf",
             "duplicate": True
         }), 409
 
     game = game_attributes(data)
-    gameID = db.createBoardGame(game)
-    return jsonify(db.getBoardGame(gameID)), 201
+    gameID = db.createBoardGame(game, user_id)
+    return jsonify(db.getBoardGame(gameID, user_id)), 201
 
 @app.route("/boardgames/<int:game_id>", methods=["PUT"])
 @login_required
 def update_boardgame(game_id):
+    user_id = get_authenticated_user()
     db = BoardGamesDB()
-    game = db.getBoardGame(game_id)
+    game = db.getBoardGame(game_id, user_id)
     if game is None:
         return jsonify({"error": "Board game is not on your shelf"}), 404
 
@@ -112,24 +116,25 @@ def update_boardgame(game_id):
         return jsonify({"error": "Name is required"}), 400
 
     force = request.args.get("force") == "true"
-    if not force and db.nameExists(data["name"], game_id):
+    if not force and db.nameExists(data["name"], user_id, game_id):
         return jsonify({
             "error": f"A game named {data['name']} is already on your shelf",
             "duplicate": True
         }), 409
     updates = game_attributes(data)
 
-    db.updateBoardGame(game_id, updates)
-    return jsonify(db.getBoardGame(game_id)), 200
+    db.updateBoardGame(game_id, updates, user_id)
+    return jsonify(db.getBoardGame(game_id, user_id)), 200
 
 @app.route("/boardgames/<int:game_id>", methods=["DELETE"])
 @login_required
 def delete_boardgame(game_id):
+    user_id = get_authenticated_user()
     db = BoardGamesDB()
-    game = db.getBoardGame(game_id)
+    game = db.getBoardGame(game_id, user_id)
     if game is None:
         return jsonify({"error": "Board game is not on your shelf"}), 404
-    db.deleteBoardGame(game_id)
+    db.deleteBoardGame(game_id, user_id)
     return jsonify({"message": "Board game was removed from your shelf"}),200
 
 @app.route("/users", methods= ["POST"])
