@@ -80,7 +80,7 @@ function applyFilters() {
 
 async function loadGames() {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, { credentials: "include" });
         allGames = await response.json();
         emptyMessage.textContent = "No games found.";
         applyFilters();
@@ -132,7 +132,7 @@ function showValue(value, suffix = "") {
 }
 
 async function showDetail(id) {
-    const response = await fetch(`${API_URL}/${id}`);
+    const response = await fetch(`${API_URL}/${id}`, { credentials: "include" });
     if (!response.ok) {
         alert("That game is no longer on your shelf.");
         loadGames();
@@ -195,7 +195,8 @@ async function saveGame(data, force = false) {
     const response = await fetch(url, {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: "include"
     });
 
     if (response.status === 409) {
@@ -235,7 +236,7 @@ deleteBtn.addEventListener("click", async () => {
     if (!currentGame) return;
     if (!confirm(`Remove ${currentGame.name} from your shelf?`)) return;
 
-    const response = await fetch(`${API_URL}/${currentGame.id}`, { method: "DELETE" });
+    const response = await fetch(`${API_URL}/${currentGame.id}`, { method: "DELETE", credentials: "include" });
     if (response.ok || response.status === 404) {
         detailDialog.close();
         currentGame = null;

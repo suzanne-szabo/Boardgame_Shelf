@@ -18,19 +18,21 @@ class BoardGamesDB:
     def __init__(self):
         self.connection = sqlite3.connect(DB_PATH)
         self.connection.row_factory = dict_factory
+        self.connection.execute("PRAGMA foreign_keys = ON")
         self.cursor = self.connection.cursor()
-        self.createTable()
         self.createUsersTable()
+        self.createTable()
 
     def createTable(self):
-        self.cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'boardgames'"
-        )
-        is_new = self.cursor.fetchone() is None
+        # self.cursor.execute(
+        #     "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'boardgames'"
+        # )
+        # is_new = self.cursor.fetchone() is None
 
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS boardgames (
                 id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 game_type TEXT,
                 min_players INTEGER,
@@ -41,13 +43,14 @@ class BoardGamesDB:
                 rating INTEGER,
                 price REAL,
                 status TEXT,
-                notes TEXT
+                notes TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
         self.connection.commit()
 
-        if is_new:
-            self.seedGames()
+        # if is_new:
+        #     self.seedGames()
 
     def createUsersTable(self):
         self.cursor.execute("""
@@ -69,42 +72,44 @@ class BoardGamesDB:
         for game in games:
             self.createBoardGame(game)
 
-    def getBoardGames(self):
-        self.cursor.execute("SELECT * FROM boardgames")
+    def getBoardGames(self, user_id):
+        self.cursor.execute("SELECT * FROM boardgames WHERE user_id = ?", (user_id,))
         return self.cursor.fetchall()
 
-    def getBoardGame(self,game_id):
-        self.cursor.execute("SELECT * FROM boardgames WHERE id = ?", (game_id,))
+    def getBoardGame(self,game_id, user_id):
+        self.cursor.execute("SELECT * FROM boardgames WHERE id = ? AND user_id = ?", (game_id, user_id))
         return self.cursor.fetchone()
 
-    def createBoardGame(self, game):
-        self.cursor.execute(""" INSERT INTO boardgames (name, game_type, min_players, 
+    def createBoardGame(self, game, user_id):
+        game["user_id"] = user_id
+        self.cursor.execute(""" INSERT INTO boardgames (user_id, name, game_type, min_players, 
                                     max_players, play_time, min_age, complexity,rating,price, status, notes)
-                                VALUES(:name,:game_type, :min_players, :max_players, :play_time,
+                                VALUES(:user_id, :name,:game_type, :min_players, :max_players, :play_time,
                                     :min_age, :complexity, :rating, :price, :status, :notes)""", game )
         self.connection.commit()
         return self.cursor.lastrowid
 
-    def updateBoardGame(self,game_id,game):
+    def updateBoardGame(self,game_id,game, user_id):
         game["id"] = game_id
+        game["user_id"] = user_id
         self.cursor.execute(""" UPDATE boardgames SET 
                                 name = :name, game_type = :game_type, min_players = :min_players,
                                 max_players = :max_players,play_time = :play_time,min_age = :min_age,
                                 complexity = :complexity,rating = :rating,price = :price,
                                 status = :status,notes = :notes
-                                WHERE id = :id""", game)
+                                WHERE id = :id AND user_id = :user_id""", game)
         self.connection.commit()
 
-    def deleteBoardGame(self,game_id):
-        self.cursor.execute("DELETE FROM boardgames WHERE id = ?",(game_id,))
+    def deleteBoardGame(self,game_id, user_id):
+        self.cursor.execute("DELETE FROM boardgames WHERE id = ? AND user_id = ?", (game_id, user_id))
         self.connection.commit()
 
-    def nameExists(self, name, exclude_id=None):
+    def nameExists(self, name,user_id, exclude_id=None):
         name = name.strip()
         if exclude_id is None:
-            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?)", (name,))
+            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND user_id = ?", (name, user_id))
         else:
-            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND id != ?", (name, exclude_id))
+            self.cursor.execute("SELECT id FROM boardgames WHERE LOWER(name) = LOWER(?) AND id != ? AND user_id = ?", (name, exclude_id, user_id))
         return self.cursor.fetchone() is not None
 
     def findUserByEmail(self,email):
