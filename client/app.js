@@ -1,3 +1,4 @@
+
 const API_URL = "http://localhost:8080/boardgames";
 
 const gameGrid = document.getElementById("game-grid");
@@ -78,16 +79,38 @@ function applyFilters() {
     renderGames(filtered);
 }
 
+
+function handleUnauthorized(response) {
+    if (response.status === 401) {
+        sessionStorage.setItem(
+            "loginMessage",
+            "Your session is no longer valid. Please log in again."
+        );
+
+        window.location.replace("index.html");
+        return true;
+    }
+
+    return false;
+}
+
+
 async function loadGames() {
     try {
-        const response = await fetch(API_URL, { credentials: "include" });
-        if (response.status === 401) { window.location.href = "index.html"; return;} 
-        if (!response.ok) throw new Error("Server returned ${response.status}");
-        
+        const response = await fetch(API_URL, {
+            credentials: "include"
+        });
+
+        if (handleUnauthorized(response)) return;
+
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
 
         allGames = await response.json();
         emptyMessage.textContent = "No games found.";
         applyFilters();
+
     } catch (error) {
         console.error("Error loading games:", error);
         allGames = [];
@@ -99,11 +122,13 @@ async function loadGames() {
 
 function renderGames(games) {
     gameGrid.innerHTML = "";
+
     if (games.length === 0) {
         emptyMessage.classList.remove("hidden");
     } else {
         emptyMessage.classList.add("hidden");
     }
+
     for (let i = 0; i < games.length; i++) {
         const game = games[i];
         const card = document.createElement("button");
@@ -111,11 +136,13 @@ function renderGames(games) {
         card.className = "mini-card";
         card.dataset.id = game.id;
         card.dataset.type = (game.game_type || "other").toLowerCase();
+
         card.innerHTML = `
             <h3 class="mini-card-name">${escapeHTML(game.name)}</h3>
             <span class="mini-card-type">${escapeHTML(game.game_type || "Untyped")}</span>
             ${game.status ? `<span class="badge badge-${escapeHTML(game.status.toLowerCase())}">${escapeHTML(game.status)}</span>` : ""}
         `;
+
         gameGrid.appendChild(card);
     }
 }
@@ -133,16 +160,37 @@ function players(game) {
 }
 
 function showValue(value, suffix = "") {
-    return value === null || value === undefined || value === "" ? "—" : `${value}${suffix}`;
+    return value === null || value === undefined || value === ""
+        ? "—"
+        : `${value}${suffix}`;
 }
 
 async function showDetail(id) {
-    const response = await fetch(`${API_URL}/${id}`, { credentials: "include" });
-    if (!response.ok) {
-        alert("That game is no longer on your shelf.");
-        loadGames();
+    let response;
+    try {
+        response = await fetch(`${API_URL}/${id}`, {
+            credentials: "include"
+        });
+    } catch (error) {
+        console.error("Error loading game:", error);
+        alert("Unable to reach the server. Please try again.");
         return;
     }
+
+    if (handleUnauthorized(response)) return;
+
+    if (response.status === 404) {
+        alert("That game is no longer on your shelf.");
+        await loadGames();
+        return;
+    }
+
+    if (!response.ok) {
+        console.error(`Failed to load game: ${response.status}`);
+        alert("Unable to load game details.");
+        return;
+    }
+
     currentGame = await response.json();
     const g = currentGame;
 
@@ -162,6 +210,7 @@ async function showDetail(id) {
         </dl>
         ${g.notes ? `<p class="detail-notes">${escapeHTML(g.notes)}</p>` : ""}
     `;
+
     detailDialog.showModal();
 }
 
@@ -169,19 +218,23 @@ function openForm(game = null) {
     editingId = game ? game.id : null;
     formTitle.textContent = game ? `Edit ${game.name}` : "Add a Game";
     gameForm.reset();
+
     if (game) {
         for (const field of FORM_FIELDS) {
             gameForm.elements[field].value = game[field] ?? "";
         }
     }
+
     formDialog.showModal();
     gameForm.elements.name.focus();
 }
 
 function getFormData() {
     const data = {};
+
     for (const field of FORM_FIELDS) {
         const raw = gameForm.elements[field].value.trim();
+
         if (raw === "") {
             data[field] = null;
         } else if (NUMBER_FIELDS.includes(field)) {
@@ -190,6 +243,7 @@ function getFormData() {
             data[field] = raw;
         }
     }
+
     return data;
 }
 
@@ -197,18 +251,29 @@ async function saveGame(data, force = false) {
     let url = editingId ? `${API_URL}/${editingId}` : API_URL;
     if (force) url += "?force=true";
 
-    const response = await fetch(url, {
-        method: editingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include"
-    });
+    let response;
+    try {
+        response = await fetch(url, {
+            method: editingId ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+            credentials: "include"
+        });
+    } catch (error) {
+        console.error("Error saving game:", error);
+        alert("Unable to reach the server. Your changes were not saved.");
+        return false;
+    }
+
+    if (handleUnauthorized(response)) return false;
 
     if (response.status === 409) {
         const body = await response.json();
+
         if (confirm(`${body.error}. Save anyway?`)) {
             return saveGame(data, true);
         }
+
         return false;
     }
 
@@ -225,12 +290,17 @@ gameForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = getFormData();
 
-    if (data.min_players && data.max_players && data.min_players > data.max_players) {
+    if (
+        data.min_players &&
+        data.max_players &&
+        data.min_players > data.max_players
+    ) {
         alert("Min players can't be more than max players.");
         return;
     }
 
     const saved = await saveGame(data);
+
     if (saved) {
         formDialog.close();
         await loadGames();
@@ -241,7 +311,20 @@ deleteBtn.addEventListener("click", async () => {
     if (!currentGame) return;
     if (!confirm(`Remove ${currentGame.name} from your shelf?`)) return;
 
-    const response = await fetch(`${API_URL}/${currentGame.id}`, { method: "DELETE", credentials: "include" });
+    let response;
+    try {
+        response = await fetch(`${API_URL}/${currentGame.id}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
+    } catch (error) {
+        console.error("Error deleting game:", error);
+        alert("Unable to reach the server. The game was not removed.");
+        return;
+    }
+
+    if (handleUnauthorized(response)) return;
+
     if (response.ok || response.status === 404) {
         detailDialog.close();
         currentGame = null;
@@ -265,23 +348,24 @@ addGameBtn.addEventListener("click", () => openForm());
 cancelBtn.addEventListener("click", () => formDialog.close());
 closeDetailBtn.addEventListener("click", () => detailDialog.close());
 
-
 document.getElementById("logout-btn").addEventListener("click", async () => {
     try {
-        const response = await fetch("http://localhost:8080/sessions",
-            {method: "DELETE", credentials: "include"});
+        const response = await fetch("http://localhost:8080/sessions", {
+            method: "DELETE",
+            credentials: "include"
+        });
 
         if (!response.ok) {
             throw new Error(`Logout failed: ${response.status}`);
         }
 
         window.location.href = "index.html";
+
     } catch (error) {
         console.error("Logout error:", error);
         alert("Unable to log out. Please try again.");
     }
 });
-
 
 for (const dialog of [formDialog, detailDialog]) {
     dialog.addEventListener("click", (event) => {

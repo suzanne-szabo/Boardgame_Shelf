@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import json
+from passlib.hash import bcrypt
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "boardgames.db")
 SEED_PATH = os.path.join(os.path.dirname(__file__), "seed_games.json")
@@ -16,12 +17,15 @@ def dict_factory(cursor, row):
 
 class BoardGamesDB:
     def __init__(self):
+        is_new_db = not os.path.exists(DB_PATH)
         self.connection = sqlite3.connect(DB_PATH)
         self.connection.row_factory = dict_factory
         self.connection.execute("PRAGMA foreign_keys = ON")
         self.cursor = self.connection.cursor()
         self.createUsersTable()
         self.createTable()
+        if is_new_db:
+            self.seedDemoData()
 
     def createTable(self):
         # self.cursor.execute(
@@ -64,13 +68,32 @@ class BoardGamesDB:
         """)
         self.connection.commit()
 
-    def seedGames(self):
+    def seedDemoData(self):
         if not os.path.exists(SEED_PATH):
             return
+
+        user1_id = self.createUser(
+            "Demo",
+            "One",
+            "jane@email.com",
+            bcrypt.hash("game1234")
+        )
+
+        user2_id = self.createUser(
+            "Demo",
+            "Two",
+            "john@email.com",
+            bcrypt.hash("play1234")
+        )
+
         with open(SEED_PATH, encoding="utf-8") as file:
             games = json.load(file)
-        for game in games:
-            self.createBoardGame(game)
+
+        for index, game in enumerate(games):
+            if index % 2 == 0:
+                self.createBoardGame(game, user1_id)
+            else:
+                self.createBoardGame(game, user2_id)
 
     def getBoardGames(self, user_id):
         self.cursor.execute("SELECT * FROM boardgames WHERE user_id = ?", (user_id,))
