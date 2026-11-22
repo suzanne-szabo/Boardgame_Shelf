@@ -1,3 +1,4 @@
+
 /* ===== Color palette and shared values ===== */
 :root {
     --wall: #2b1420;
@@ -548,7 +549,7 @@ body {
     white-space: pre-line;
 }
 
-/* ===== Tablets and small laptops: smaller controls so they fit on the shelf ===== */
+/* ===== Tablets and small laptops ===== */
 @media (min-width: 701px) and (max-width: 1100px) {
     #add-game-btn {
         padding: 8px 18px;
@@ -741,6 +742,41 @@ body {
     font-weight: 700;
 }
 
+/* Switch between the login and registration forms */
+.auth-switch {
+    margin: 8px 0 0;
+    text-align: center;
+}
+
+.link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--magenta);
+    font: inherit;
+    font-weight: 800;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.link-btn:hover {
+    filter: brightness(0.85);
+}
+
+.link-btn:focus-visible {
+    outline: 3px solid var(--purple);
+    outline-offset: 3px;
+}
+
+/* Shown on the shelf page while the session is being checked */
+.page-status {
+    margin: 0;
+    padding: 64px 16px;
+    color: var(--cream);
+    font-weight: 700;
+    text-align: center;
+}
+
 @media (max-width: 600px) {
     #auth-container {
         padding-top: 24px;
@@ -749,5 +785,47 @@ body {
     #login-section,
     #register-section {
         padding: 20px;
+    }
+}
+
+/* ===== Logout button ===== */
+#logout-btn {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    z-index: 3;
+
+    padding: 8px 18px;
+    border: 2px solid var(--cream);
+    border-radius: 999px;
+
+    background: rgba(29, 13, 22, 0.8);
+    color: var(--cream);
+
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#logout-btn:hover {
+    background: var(--magenta);
+    border-color: var(--magenta);
+    color: #fff;
+}
+
+#logout-btn:focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    #logout-btn {
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
 }

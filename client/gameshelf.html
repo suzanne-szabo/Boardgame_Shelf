@@ -7,10 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
-    <header class="hero">
+    <p id="page-status" class="page-status" role="status">Loading your shelf…</p>
+
+    <header class="hero hidden">
         <div class="hero-content">
             <h1 class="site-title">Game Shelf</h1>
             <button type="button" id="add-game-btn" class="btn btn-primary">+ Add Game</button>
@@ -35,9 +37,9 @@
         </div>
     </header>
 
-    <main class="shelf">
+    <main class="shelf hidden">
         <div id="game-grid" class="card-grid"></div>
-        <p id="empty-message" class="empty-message hidden">No games found.</p>
+        <p id="empty-message" class="empty-message hidden"></p>
     </main>
 
     <dialog id="form-dialog" class="dialog">
@@ -145,6 +147,6 @@
         </div>
     </dialog>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>

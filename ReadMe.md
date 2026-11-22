@@ -35,6 +35,10 @@ The Flask backend runs on port `8080`. Both `auth.js` and `app.js` should use `h
 
 See **Running the App** below for the complete setup instructions.
 
+## Browser Caching Note
+
+During development, the browser kept using cached copies of older JavaScript and CSS files, so code changes did not always show. To prevent this AI offered this solution- the HTML pages load their files with a version number (for example, `app.js?v=2`). Changing the number forces the browser to download the latest version. If the app ever behaves unexpectedly after an update, a hard refresh (**Cmd+Shift+R** on macOS, **Ctrl+Shift+R** on Windows) will also clear the cached files.
+
 ## Resources
 
 The application uses two resources: **User** and **Board Game**.

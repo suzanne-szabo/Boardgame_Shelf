@@ -1,6 +1,9 @@
 
 const API_URL = "http://localhost:8080/boardgames";
 
+const pageStatus = document.getElementById("page-status");
+const heroSection = document.querySelector(".hero");
+const shelfSection = document.querySelector(".shelf");
 const gameGrid = document.getElementById("game-grid");
 const emptyMessage = document.getElementById("empty-message");
 
@@ -95,6 +98,12 @@ function handleUnauthorized(response) {
 }
 
 
+function revealShelf() {
+    pageStatus.classList.add("hidden");
+    heroSection.classList.remove("hidden");
+    shelfSection.classList.remove("hidden");
+}
+
 async function loadGames() {
     try {
         const response = await fetch(API_URL, {
@@ -108,11 +117,17 @@ async function loadGames() {
         }
 
         allGames = await response.json();
-        emptyMessage.textContent = "No games found.";
+        revealShelf();
         applyFilters();
 
     } catch (error) {
         console.error("Error loading games:", error);
+
+        if (shelfSection.classList.contains("hidden")) {
+            pageStatus.textContent = "Unable to reach the server. Please try again later.";
+            return;
+        }
+
         allGames = [];
         gameGrid.innerHTML = "";
         emptyMessage.textContent = "Unable to load games. Please try again";
@@ -124,6 +139,9 @@ function renderGames(games) {
     gameGrid.innerHTML = "";
 
     if (games.length === 0) {
+        emptyMessage.textContent = allGames.length === 0
+            ? "Your shelf is empty. Click + Add Game to get started."
+            : "No games match your search.";
         emptyMessage.classList.remove("hidden");
     } else {
         emptyMessage.classList.add("hidden");
